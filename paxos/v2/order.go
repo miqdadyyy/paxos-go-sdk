@@ -95,12 +95,13 @@ type CreateOrderResponseData struct {
 }
 
 func (v2 *PaxosV2) GetListExecutions(requestData *GetListExecutionQueryRequest) ([]ListExecutionItem, error) {
-	query := ""
+	var result GetListExecutionResponse
+	var query string
+
 	if requestData != nil {
 		query = util.GenerateQueryFromStruct(requestData)
 	}
 
-	var result GetListExecutionResponse
 	client := v2.PaxosClient.GenerateClientRequest()
 	resp, err := client.Get(v2.generateUrlFromPath("executions") + query)
 	if err != nil {
@@ -115,12 +116,13 @@ func (v2 *PaxosV2) GetListExecutions(requestData *GetListExecutionQueryRequest) 
 }
 
 func (v2 *PaxosV2) GetListOrders(requestData *GetListExecutionQueryRequest) ([]ListOrderItem, error) {
-	query := ""
+	var query string
+	var result GetListOrderResponse
+
 	if requestData != nil {
 		query = util.GenerateQueryFromStruct(requestData)
 	}
 
-	var result GetListOrderResponse
 	client := v2.PaxosClient.GenerateClientRequest()
 	resp, err := client.Get(v2.generateUrlFromPath("orders") + query)
 	if err != nil {

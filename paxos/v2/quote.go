@@ -2,6 +2,8 @@ package v2
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -20,10 +22,16 @@ type GetQuoteResponse struct {
 	Items []QuoteItem `json:"items"`
 }
 
-func (v2 *PaxosV2) GetQuotes() ([]QuoteItem, error) {
+func (v2 *PaxosV2) GetQuotes(markets ...string) ([]QuoteItem, error) {
 	var result GetQuoteResponse
+	var query string
+
+	if len(markets) > 0 {
+		query = fmt.Sprintf("?markets=%s", strings.Join(markets, "&markets="))
+	}
+
 	client := v2.PaxosClient.GenerateClientRequest()
-	resp, err := client.Get(v2.generateUrlFromPath("quotes"))
+	resp, err := client.Get(v2.generateUrlFromPath("quotes" + query))
 	if err != nil {
 		return nil, err
 	}

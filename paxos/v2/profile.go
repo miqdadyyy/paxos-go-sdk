@@ -63,12 +63,14 @@ func (v2 *PaxosV2) GetProfileByID(profileID string) (ProfileItem, error) {
 
 func (v2 *PaxosV2) GetProfileBalances(profileID string, assets ...string) ([]ProfileBalanceItem, error) {
 	var result GetProfileBalanceItemsResponse
-	client := v2.PaxosClient.GenerateClientRequest()
-	url := v2.generateUrlFromPath(fmt.Sprintf("profiles/%s/balances", profileID))
+	var query string
+
 	if len(assets) > 0 {
-		url = fmt.Sprintf("%s?assets=%s", url, strings.Join(assets, ","))
+		query = fmt.Sprintf("?assets=%s", strings.Join(assets, "&assets="))
 	}
-	resp, err := client.Get(url)
+
+	client := v2.PaxosClient.GenerateClientRequest()
+	resp, err := client.Get(v2.generateUrlFromPath(fmt.Sprintf("profiles/%s/balances%s", profileID, query)))
 	if err != nil {
 		return result.Items, err
 	}
