@@ -1,7 +1,9 @@
 package paxos
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/miqdadyyy/paxos-go-sdk/constant"
 	"github.com/miqdadyyy/paxos-go-sdk/paxos/oauth"
@@ -65,35 +67,28 @@ func (c *PaxosClient) GenerateClientRequest() *resty.Request {
 }
 
 func (c *PaxosClient) OAuth(scopes ...string) error {
-	//client := c.GenerateClientRequest()
-	//url := fmt.Sprintf("%s%s", c.OauthBaseURL, "oauth2/token")
-	//resp, err := client.
-	//	SetFormData(map[string]string{
-	//		"grant_type":    constant.PaxosGrantTypeClientCredentials,
-	//		"client_id":     c.ClientID,
-	//		"client_secret": c.ClientSecret,
-	//		"scope":         strings.Join(scopes, " "),
-	//	}).
-	//	Post(url)
-	//
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if resp.StatusCode() != http.StatusOK {
-	//	return errors.New(string(resp.Body()))
-	//}
-	//
-	//var oauthResp oauth.OAuthResponse
-	//if err := json.Unmarshal(resp.Body(), &oauthResp); err != nil {
-	//	return err
-	//}
+	client := c.GenerateClientRequest()
+	url := fmt.Sprintf("%s%s", c.OauthBaseURL, "oauth2/token")
+	resp, err := client.
+		SetFormData(map[string]string{
+			"grant_type":    constant.PaxosGrantTypeClientCredentials,
+			"client_id":     c.ClientID,
+			"client_secret": c.ClientSecret,
+			"scope":         strings.Join(scopes, " "),
+		}).
+		Post(url)
 
-	oauthResp := oauth.OAuthResponse{
-		AccessToken: "m7r574OqG_726mAnyHTMrcr9eFIRAmXxK2Lwi1WepTY.QKFzaNrbMC_sES45W_tOLuNtNLR3LKgqYVHiYMMaG_s",
-		TokenType:   "bearer",
-		Scope:       strings.Join(scopes, " "),
-		ExpiresIn:   3600,
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return errors.New(string(resp.Body()))
+	}
+
+	var oauthResp oauth.OAuthResponse
+	if err := json.Unmarshal(resp.Body(), &oauthResp); err != nil {
+		return err
 	}
 
 	c.OauthData = PaxosOauth{
