@@ -28,7 +28,11 @@ func GenerateQueryFromStruct(queryRequest interface{}, excludes ...string) strin
 		}
 	}
 
-	return strings.Join(res, "&")
+	if len(res) > 0 {
+		return "?" + strings.Join(res, "&")
+	}
+
+	return ""
 }
 
 func GenerateBodyFromStruct(requestBody interface{}, excludes ...string) map[string]string {

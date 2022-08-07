@@ -2,6 +2,7 @@ package v2
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/miqdadyyy/paxos-go-sdk/constant"
 	"github.com/miqdadyyy/paxos-go-sdk/util"
 	"time"
@@ -46,20 +47,20 @@ type GetListExecutionResponse struct {
 }
 
 type ListOrderItem struct {
-	ID                         string `json:"id"`
-	ProfileID                  string `json:"profile_id"`
-	RefID                      string `json:"ref_id"`
-	Status                     string `json:"status"`
-	Market                     string `json:"market"`
-	Side                       string `json:"side"`
-	Type                       string `json:"type"`
-	Price                      string `json:"price"`
-	BaseAmount                 string `json:"base_amount"`
-	QuoteAmount                string `json:"quote_amount"`
-	Metadata                   string `json:"metadata"`
-	AmountFilled               string `json:"amount_filled"`
-	VolumeWeightedAveragePrice string `json:"volume_weighted_average_price"`
-	TimeInForce                string `json:"time_in_force"`
+	ID                         string      `json:"id"`
+	ProfileID                  string      `json:"profile_id"`
+	RefID                      string      `json:"ref_id"`
+	Status                     string      `json:"status"`
+	Market                     string      `json:"market"`
+	Side                       string      `json:"side"`
+	Type                       string      `json:"type"`
+	Price                      string      `json:"price"`
+	BaseAmount                 string      `json:"base_amount"`
+	QuoteAmount                string      `json:"quote_amount"`
+	Metadata                   interface{} `json:"metadata"`
+	AmountFilled               string      `json:"amount_filled"`
+	VolumeWeightedAveragePrice string      `json:"volume_weighted_average_price"`
+	TimeInForce                string      `json:"time_in_force"`
 }
 
 type GetListOrderResponse struct {
@@ -94,13 +95,11 @@ type CreateOrderResponseData struct {
 	TimeInForce                string      `json:"time_in_force"`
 }
 
-func (v2 *PaxosV2) GetListExecutions(requestData *GetListExecutionQueryRequest) ([]ListExecutionItem, error) {
+func (v2 *PaxosV2) GetListExecutions(requestData GetListExecutionQueryRequest) ([]ListExecutionItem, error) {
 	var result GetListExecutionResponse
 	var query string
 
-	if requestData != nil {
-		query = util.GenerateQueryFromStruct(requestData)
-	}
+	query = util.GenerateQueryFromStruct(requestData)
 
 	client := v2.PaxosClient.GenerateClientRequest()
 	resp, err := client.Get(v2.generateUrlFromPath("executions") + query)
@@ -115,13 +114,14 @@ func (v2 *PaxosV2) GetListExecutions(requestData *GetListExecutionQueryRequest) 
 	return result.Items, nil
 }
 
-func (v2 *PaxosV2) GetListOrders(requestData *GetListOrderQueryRequest) ([]ListOrderItem, error) {
+func (v2 *PaxosV2) GetListOrders(requestData GetListOrderQueryRequest) ([]ListOrderItem, error) {
 	var query string
 	var result GetListOrderResponse
-
-	if requestData != nil {
-		query = util.GenerateQueryFromStruct(requestData)
+	if requestData.Limit == 0 {
+		requestData.Limit = 10
 	}
+
+	query = util.GenerateQueryFromStruct(requestData)
 
 	client := v2.PaxosClient.GenerateClientRequest()
 	resp, err := client.Get(v2.generateUrlFromPath("orders") + query)
@@ -136,8 +136,11 @@ func (v2 *PaxosV2) GetListOrders(requestData *GetListOrderQueryRequest) ([]ListO
 	return result.Items, nil
 }
 
-func (v2 PaxosV2) CreateOrder(requestData CreateOrderRequestData) {
+func (v2 *PaxosV2) CreateOrder(profileID string, requestData CreateOrderRequestData) (*ListOrderItem, error) {
 	requestBody := make(map[string]interface{})
+	var result ListOrderItem
+
+	client := v2.PaxosClient.GenerateClientRequest()
 
 	switch requestData.Type {
 	case constant.OrderTypeLimit:
@@ -161,4 +164,33 @@ func (v2 PaxosV2) CreateOrder(requestData CreateOrderRequestData) {
 		requestBody["metadata"] = requestData.Metadata
 	}
 
+	resp, err := client.
+		SetHeader("Content-Type", "application/json").
+		SetBody(requestBody).
+		Post(v2.generateUrlFromPath(fmt.Sprintf("profiles/%s/orders", profileID)))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(resp.Body(), &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (v2 *PaxosV2) GetOrderDetail(profileID string, orderID string) (*ListOrderItem, error) {
+	var result ListOrderItem
+
+	client := v2.PaxosClient.GenerateClientRequest()
+	resp, err := client.Get(v2.generateUrlFromPath(fmt.Sprintf("profiles/%s/orders/%s", profileID, orderID)))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(resp.Body(), &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
