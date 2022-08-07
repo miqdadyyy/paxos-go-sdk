@@ -115,7 +115,7 @@ func (v2 *PaxosV2) GetListExecutions(requestData *GetListExecutionQueryRequest) 
 	return result.Items, nil
 }
 
-func (v2 *PaxosV2) GetListOrders(requestData *GetListExecutionQueryRequest) ([]ListOrderItem, error) {
+func (v2 *PaxosV2) GetListOrders(requestData *GetListOrderQueryRequest) ([]ListOrderItem, error) {
 	var query string
 	var result GetListOrderResponse
 
