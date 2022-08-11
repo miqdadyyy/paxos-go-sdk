@@ -48,7 +48,7 @@ type MarketOrderBook struct {
 }
 
 type MarketTicker struct {
-	Market        int               `json:"market"`
+	Market        string            `json:"market"`
 	BestBid       MarketPriceAmount `json:"best_bid"`
 	BestAsk       MarketPriceAmount `json:"best_ask"`
 	LastExecution MarketPriceAmount `json:"last_execution"`
