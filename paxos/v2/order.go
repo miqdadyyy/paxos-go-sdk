@@ -73,6 +73,7 @@ type CreateOrderRequestData struct {
 	Market      string      `json:"market"`
 	Type        string      `json:"type"`
 	Price       string      `json:"price"`
+	TimeInForce string      `json:"time_in_force"`
 	BaseAmount  string      `json:"base_amount"`
 	QuoteAmount string      `json:"quote_amount"`
 	Metadata    interface{} `json:"metadata"`
@@ -158,6 +159,10 @@ func (v2 *PaxosV2) CreateOrder(profileID string, requestData CreateOrderRequestD
 		} else {
 			requestBody["base_amount"] = requestData.BaseAmount
 		}
+	}
+
+	if requestData.TimeInForce != "" {
+		requestBody["time_in_force"] = requestData.TimeInForce
 	}
 
 	if requestData.Metadata != nil {
